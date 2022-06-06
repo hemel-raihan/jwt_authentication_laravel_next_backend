@@ -44,7 +44,10 @@ class AuthController extends Controller
 
     public function user()
     {
-        return Auth::user();
+        //return Auth::user();
+
+        $user = User::where('id',1)->first();
+        return $user;
     }
 
     public function logout()
