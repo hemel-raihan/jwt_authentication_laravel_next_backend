@@ -3,64 +3,105 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use GuzzleHttp\Psr7\Message;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Hash;
-use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-
-    public function register(Request $request)
+    /**
+     * Create a new AuthController instance.
+     *
+     * @return void
+     */
+    public function __construct()
     {
-        return User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+        //$this->middleware('jwt', ['except' => ['login']]);
+    }
+
+    /**
+     * Get a JWT token via given credentials.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if ($token = $this->guard()->attempt($credentials)) {
+            return $this->respondWithToken($token);
+
+        }
+
+        return response()->json(['error' => 'Unauthorizedd'], 401);
+    }
+
+    /**
+     * Get the authenticated User
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me()
+    {
+        // $user = $this->guard()->user();
+        // return response()->json([
+        //     'data' => $user
+        // ]);
+        $user = User::where('id',2)->first();
+        //return $user;
+        return response()->json([
+                'data' => $user
+            ]);
+    }
+
+    /**
+     * Log the user out (Invalidate the token)
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout()
+    {
+        $this->guard()->logout();
+
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    /**
+     * Refresh a token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh()
+    {
+        return $this->respondWithToken($this->guard()->refresh());
+    }
+
+    /**
+     * Get the token array structure.
+     *
+     * @param  string $token
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function respondWithToken($token)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => $this->guard()->factory()->getTTL() * 60,
+            'user' => auth()->user()
         ]);
     }
 
-    public function login(Request $request)
+    /**
+     * Get the guard to be used during authentication.
+     *
+     * @return \Illuminate\Contracts\Auth\Guard
+     */
+    public function guard()
     {
-       if(!Auth::attempt($request->only('email', 'password')))
-       {
-           return response([
-               'message' => 'Invalid Credentials'
-           ], Response::HTTP_UNAUTHORIZED);
-       }
-
-       $user = Auth::user();
-
-       $token = $user->createToken('token')->plainTextToken;
-
-       $cookie = cookie('jwt',$token, 60 * 24); //1 day
-
-       return response([
-           'message' => $token
-       ])->withCookie($cookie);
+        return Auth::guard();
     }
-
-    public function user()
-    {
-        //return Auth::user();
-
-        $user = User::where('id',2)->first();
-        return $user;
-    }
-
-    public function logout()
-    {
-        $cookie = Cookie::forget('jwt');
-
-        return response([
-            'message' => 'success'
-        ])->withCookie($cookie);
-    }
-
-
-
-
-
 }

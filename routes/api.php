@@ -16,13 +16,29 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::post('register',[\App\Http\Controllers\AuthController::class, 'register']);
+// Route::post('register',[\App\Http\Controllers\AuthController::class, 'register']);
+// Route::post('login',[\App\Http\Controllers\AuthController::class, 'login']);
+// Route::get('user',[\App\Http\Controllers\AuthController::class, 'user']);
+// Route::middleware('auth:sanctum')->group(function(){
+
+//     Route::post('logout',[\App\Http\Controllers\AuthController::class, 'logout']);
+//     Route::post('post',[\App\Http\Controllers\PostController::class, 'insert']);
+// });
+
 Route::post('login',[\App\Http\Controllers\AuthController::class, 'login']);
-Route::get('user',[\App\Http\Controllers\AuthController::class, 'user']);
-Route::middleware('auth:sanctum')->group(function(){
+Route::group([
 
-    Route::post('logout',[\App\Http\Controllers\AuthController::class, 'logout']);
-    Route::post('post',[\App\Http\Controllers\PostController::class, 'insert']);
+    //'middleware' => 'api',
+    'namespace' => 'App\Http\Controllers',
+    //'prefix' => 'auth'
+
+], function ($router) {
+
+    //Route::post('login', 'AuthController@login');
+
+    Route::post('logout', 'AuthController@logout');
+    Route::post('refresh', 'AuthController@refresh');
+    Route::post('me', 'AuthController@me');
+
 });
-
 
