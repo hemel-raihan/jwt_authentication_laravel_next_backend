@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('login',[\App\Http\Controllers\AuthController::class, 'login']);
 Route::group([
 
-    //'middleware' => 'api',
+    'middleware' => 'api',
     'namespace' => 'App\Http\Controllers',
     //'prefix' => 'auth'
 
