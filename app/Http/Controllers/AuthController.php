@@ -16,7 +16,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('jwt', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login','register']]);
     }
 
     /**
@@ -45,15 +45,12 @@ class AuthController extends Controller
      */
     public function me()
     {
-        // $user = $this->guard()->user();
+        return response()->json($this->guard()->user());
+        // $user = User::where('id',2)->first();
+        // //return $user;
         // return response()->json([
-        //     'data' => $user
-        // ]);
-        $user = User::where('id',2)->first();
-        //return $user;
-        return response()->json([
-                'data' => $user
-            ]);
+        //         'data' => $user
+        //     ]);
     }
 
     /**
